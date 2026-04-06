@@ -189,7 +189,6 @@ bruteforce_and_resolve() {
 
         done < "$WORDLIST"
 
-        print_footer
 }
 
 ##### ORIGINAL MODES #####
