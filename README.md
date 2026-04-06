@@ -60,8 +60,8 @@ sudo apt install dnsutils
 ## 📦 Installation
 
 ```bash id="p6r6qx"
-git clone https://github.com/SEU-USUARIO/dns-sweeper.git
-cd dns-sweeper
+git clone https://github.com/Douglas-fCruz/DNS_Sweeper
+cd DNS_Sweeper
 chmod +x dns_sweeper.sh
 ```
 
@@ -113,7 +113,6 @@ Automatically:
 dns-sweeper/
 ├── dns_sweeper.sh
 ├── README.md
-└── wordlists/
 ```
 
 ---
@@ -127,7 +126,7 @@ The author is not responsible for misuse.
 
 ## 👨‍💻 Author
 
-**Douglas Ferreira Cruz**
+**Douglas Cruz**
 
 ---
 
