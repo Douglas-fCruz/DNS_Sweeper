@@ -21,6 +21,8 @@ transferzone="${YELLOW}TRANSFERZONE${RESET}${CYAN}=====${RESET}"
 nameserver="${YELLOW}NAME SERVER${RESET}${CYAN}=====${RESET}"
 spf="${YELLOW}SENDER POLICY FRAMEWORK${RESET}${CYAN}=====${RESET}"
 mx="${YELLOW}MAIL-SERVER${RESET}${CYAN}=====${RESET}"
+cname="${YELLOW}CNAME${RESET}${CYAN}=====${RESET}"
+
 bar="${CYAN}=========================================================${RESET}"
 
 show_manual="
@@ -37,6 +39,7 @@ ${YELLOW}-n${RESET}, ${MAGENTA}--ns${RESET}       ${BLUE}#${RESET} ${WHITE}Name 
 ${YELLOW}-t${RESET}, ${MAGENTA}--transf${RESET}   ${BLUE}#${RESET} ${WHITE}Transfer Zone;${RESET}
 ${YELLOW}-s${RESET}, ${MAGENTA}--sender${RESET}   ${BLUE}#${RESET} ${WHITE}SPF Discovery;${RESET}
 ${YELLOW}-mx${RESET}, ${MAGENTA}--mail${RESET}    ${BLUE}#${RESET} ${WHITE}Mail Servers;${RESET}
+${YELLOW}-c${RESET}, ${MAGENTA}--cname${RESET}    ${BLUE}#${RESET} ${WHITE}CNAME;${RESET}
 ${YELLOW}-w${RESET}, ${MAGENTA}--wordlist${RESET} ${BLUE}#${RESET} ${WHITE}Subdomain bruteforce;${RESET}
 
 ${bar}
@@ -63,6 +66,7 @@ RUN_TRANSF=false
 RUN_SENDER=false
 RUN_ALL=false
 RUN_MX=false
+RUN_CNAME=false
 WORDLIST=""
 
 ##### ARGUMENTS #####
@@ -73,7 +77,8 @@ while [[ $# -gt 0 ]]; do
                 -4|--ip4) RUN_IPV4=true ;;
                 -6|--ip6) RUN_IPV6=true ;;
                 -mx|--mail) RUN_MX=true ;;
-                -n|--ns) RUN_NS=true ;;
+               	-c|--cname) RUN_CNAME=true ;;
+		-n|--ns) RUN_NS=true ;;
                 -t|--transf) RUN_TRANSF=true ;;
                 -s|--sender) RUN_SENDER=true ;;
                 -a|--all) RUN_ALL=true ;;
@@ -118,6 +123,23 @@ resolve_ipv6() {
         echo
 }
 
+resolve_cname() {
+        target="$1"
+	printf "%b\n" "$cname"	
+
+        result=$(host -t CNAME "$target" 2>/dev/null | awk '/alias for/ {print $NF}')
+
+        if [[ -z "$result" ]]; then
+                printf "${GREEN}%s${RESET} ${YELLOW}----->${RESET} ${WHITE}NOT FOUND${RESET}\n" "$target"
+        else
+                while read -r cname; do
+                        printf "${GREEN}%s${RESET} ${YELLOW}----->${RESET} ${WHITE}%s${RESET}\n" "$target" "$cname"
+                done <<< "$result"
+        fi
+
+        echo
+}
+
 resolve_ns() {
         target="$1"
         printf "%b\n" "$nameserver"
@@ -157,6 +179,7 @@ bruteforce_and_resolve() {
 
                         resolve_ipv4 "$full_domain"
                         resolve_ipv6 "$full_domain"
+			resolve_cname "$full_domain"
                         resolve_ns "$full_domain"
                         resolve_mx "$full_domain"
                         resolve_spf "$full_domain"
@@ -177,6 +200,7 @@ run_ipv6() { printf "%b\n\n" "$dns_sweeper"; resolve_ipv6 "$domain"; printf "%b\
 run_ns() { printf "%b\n\n" "$dns_sweeper"; resolve_ns "$domain"; printf "%b\n" "$bar"; }
 run_mx() { printf "%b\n\n" "$dns_sweeper"; resolve_mx "$domain"; printf "%b\n" "$bar"; }
 run_sender() { printf "%b\n\n" "$dns_sweeper"; resolve_spf "$domain"; printf "%b\n" "$bar"; }
+run_cname() { printf "%b\n\n" "$dns_sweeper"; resolve_cname "$domain"; printf "%b\n" "$bar"; }
 
 ##### EXECUTION #####
 
@@ -186,6 +210,7 @@ run_sender() { printf "%b\n\n" "$dns_sweeper"; resolve_spf "$domain"; printf "%b
 [ "$RUN_NS" = true ] && run_ns
 [ "$RUN_MX" = true ] && run_mx
 [ "$RUN_SENDER" = true ] && run_sender
+[ "$RUN_CNAME" = true ] && run_cname
 
 if [[ -n "$WORDLIST" ]]; then
         bruteforce_and_resolve
